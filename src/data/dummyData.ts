@@ -1,48 +1,48 @@
 
 import { User, Insurance, Claim } from '../store/store';
 
-export const dummyUsers: User[] = [
-  {
-    id: '1',
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    role: 'user',
-    avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
-  },
-  {
-    id: '2',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane.smith@example.com',
-    role: 'user',
-    avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
-  },
-  {
-    id: '3',
-    firstName: 'Admin',
-    lastName: 'User',
-    email: 'admin@example.com',
-    role: 'admin',
-    avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
-  },
-  {
-    id: '4',
-    firstName: 'George', 
-    lastName: 'Brown',
-    email: 'george.brown@example.com',
-    role: 'user',
-    avatar: 'https://randomuser.me/api/portraits/men/4.jpg',
-  },
-  {
-    id: '5',
-    firstName: 'Alice',
-    lastName: 'Wilson',
-    email: 'alice.wilson@example.com',
-    role: 'user',
-    avatar: 'https://randomuser.me/api/portraits/women/5.jpg',
-  },
-];
+// export const dummyUsers: User[] = [
+//   {
+//     id: '1',
+//     firstName: 'John',
+//     lastName: 'Doe',
+//     email: 'john.doe@example.com',
+//     role: 'user',
+//     avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
+//   },
+//   {
+//     id: '2',
+//     firstName: 'Jane',
+//     lastName: 'Smith',
+//     email: 'jane.smith@example.com',
+//     role: 'user',
+//     avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+//   },
+//   {
+//     id: '3',
+//     firstName: 'Admin',
+//     lastName: 'User',
+//     email: 'admin@example.com',
+//     role: 'admin',
+//     avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
+//   },
+//   {
+//     id: '4',
+//     firstName: 'George', 
+//     lastName: 'Brown',
+//     email: 'george.brown@example.com',
+//     role: 'user',
+//     avatar: 'https://randomuser.me/api/portraits/men/4.jpg',
+//   },
+//   {
+//     id: '5',
+//     firstName: 'Alice',
+//     lastName: 'Wilson',
+//     email: 'alice.wilson@example.com',
+//     role: 'user',
+//     avatar: 'https://randomuser.me/api/portraits/women/5.jpg',
+//   },
+// ];
 
 export const dummyInsurances: Insurance[] = [
   {

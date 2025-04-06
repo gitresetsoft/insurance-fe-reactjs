@@ -4,52 +4,46 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useAppStore } from '@/store/store';
-import { dummyUsers } from '@/data/dummyData';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
+import { useUser } from '@/hooks/useUser';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login } = useAppStore();
+  const { fetchUserByEmail } = useUser();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Simulate login delay
-    setTimeout(() => {
-      // Find a user with the provided email
-      const user = dummyUsers.find(user => user.email === email);
-
-      if (user && password === 'password') { // Simple password check
-        login(user);
+    try {
+      // TODO: Implement Google OAuth2 authentication
+      // For now, we're using email/password + backend validation
+      const result = await fetchUserByEmail.mutateAsync({ email });
+      
+      if (result) {
         toast({
           title: "Login successful",
-          description: `Welcome back, ${user.firstName}!`,
+          description: `Welcome back, ${result.firstName}!`,
         });
-        
-        // Redirect based on role
-        if (user.role === 'admin') {
-          navigate('/admin/dashboard');
-        } else {
-          navigate('/dashboard');
-        }
+        navigate('/dashboard');
       } else {
         toast({
-          title: "Login failed",
-          description: "Invalid email or password. Please try again.",
+          title: "User not found",
+          description: "The user with the provided email was not found.",
           variant: "destructive"
         });
       }
-      
-      setIsLoading(false);
-    }, 1000);
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Failed to login. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -97,8 +91,12 @@ const LoginForm = () => {
               </button>
             </div>
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={fetchUserByEmail.isPending}
+          >
+            {fetchUserByEmail.isPending ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">
@@ -107,6 +105,7 @@ const LoginForm = () => {
             Create an account
           </Button>
         </div>
+        {/* TODO: Remove demo accounts section once Google OAuth is implemented */}
         <div className="mt-4 p-3 bg-muted rounded-md">
           <div className="text-xs text-muted-foreground">
             <p className="font-medium">Demo Accounts:</p>
