@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Shield, CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useAppStore } from '@/store/store';
+import zurinceLogo from '@/assets/_index';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const Landing = () => {
       <header className="container px-4 py-6">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <Shield className="h-8 w-8 text-primary mr-2" />
+            <img src={zurinceLogo} alt="Zurince Logo" className="h-8 w-auto text-primary mr-2"/>
             <span className="text-xl font-bold">Zurince</span>
           </div>
           <div>
@@ -67,7 +68,7 @@ const Landing = () => {
               Easily manage your policies and claims online.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" onClick={() => navigate('/register')} className="gap-2">
+              <Button size="lg" onClick={() => isAuthenticated ? navigate('/dashboard') : navigate('/register')} className="gap-2">
                 Get Started
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -78,9 +79,8 @@ const Landing = () => {
           </div>
           <div className="hidden md:flex justify-center">
             <div className="w-full h-80 bg-muted rounded-lg shadow-lg p-8">
-              {/* Placeholder for an illustration or screenshot */}
               <div className="h-full w-full flex items-center justify-center">
-                <Shield className="h-32 w-32 text-primary opacity-30" />
+                <img src={zurinceLogo} alt="Zurince Logo" className="h-32 w-auto text-primary opacity-30"/>
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ const Landing = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
-                <Shield className="h-6 w-6 text-primary mr-2" />
+              <img src={zurinceLogo} alt="Zurince Logo" className="h-8 w-auto text-primary mr-2"/>
                 <span className="text-lg font-bold">Zurince</span>
               </div>
               <p className="text-muted-foreground text-sm">

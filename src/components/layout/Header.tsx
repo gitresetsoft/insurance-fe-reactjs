@@ -2,7 +2,8 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/store/store';
-import { LogOut, User, Shield } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
+import zurinceLogo from '@/assets/_index';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +32,7 @@ const Header = ({ title = 'Zurince' }: HeaderProps) => {
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-4">
           <Link to={user?.role === 'admin' ? '/admin/dashboard' : '/dashboard'} className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
+            <img src={zurinceLogo} alt="Zurince Logo" className="h-8 w-auto"/>
             <span className="text-lg font-bold">{title}</span>
           </Link>
         </div>

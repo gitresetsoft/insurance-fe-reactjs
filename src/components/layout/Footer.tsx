@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield } from 'lucide-react';
+import zurinceLogo from '@/assets/_index';
 
 interface FooterProps {
   companyName?: string;
@@ -13,11 +13,11 @@ const Footer = ({
 }: FooterProps) => {
   return (
     <footer className="border-t bg-muted">
-      <div className="container px-4 py-6 md:px-6 md:py-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="container px-4 py-6 md:px-6 md:py-4">
+        <div className="flex flex-col gap-6 md:flex-row md:justify-between">
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
+              <img src={zurinceLogo} alt="Zurince Logo" className="h-8 w-auto"/>
               <span className="text-lg font-bold">{companyName}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -27,31 +27,6 @@ const Footer = ({
           
           {showLinks && (
             <>
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium">Products</h4>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <Link to="/insurance/home" className="text-muted-foreground transition-colors hover:text-foreground">
-                      Home Insurance
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/insurance/auto" className="text-muted-foreground transition-colors hover:text-foreground">
-                      Auto Insurance
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/insurance/life" className="text-muted-foreground transition-colors hover:text-foreground">
-                      Life Insurance
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/insurance/health" className="text-muted-foreground transition-colors hover:text-foreground">
-                      Health Insurance
-                    </Link>
-                  </li>
-                </ul>
-              </div>
               <div className="space-y-4">
                 <h4 className="text-sm font-medium">Company</h4>
                 <ul className="space-y-2 text-sm">
@@ -90,7 +65,7 @@ const Footer = ({
             </>
           )}
         </div>
-        <div className="mt-6 border-t pt-6">
+        <div className="mt-2 border-t pt-2">
           <p className="text-center text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} {companyName}. All rights reserved.
           </p>
