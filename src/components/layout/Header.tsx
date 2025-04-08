@@ -13,18 +13,34 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useUser } from '@/hooks/useUser';
+import { useToast } from '@/hooks/use-toast';
 
 interface HeaderProps {
   title?: string;
 }
 
 const Header = ({ title = 'Zurince' }: HeaderProps) => {
-  const { user, logout } = useAppStore();
+  const { user } = useAppStore();
   const navigate = useNavigate();
+  const { userLogout } = useUser();
+  const { toast } = useToast();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await userLogout.mutateAsync();
+      toast({
+        title: "Logout successful",
+        description: "You have been logged out successfully.",
+      });
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: error instanceof Error ? error.message : "Failed to logout. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

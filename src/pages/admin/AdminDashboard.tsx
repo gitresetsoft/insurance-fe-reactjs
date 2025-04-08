@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import Sidebar from '@/components/layout/Sidebar';
 import { useAppStore } from '@/store/store';
@@ -12,34 +11,37 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Users,
-  Shield,
-  FileText,
-  BarChart3,
-  Calendar,
-} from 'lucide-react';
-import { dummyUsers } from '@/data/dummyData';
+import { Users, Shield, FileText, Calendar } from 'lucide-react';
+import { useGetAllUsers } from '@/hooks/useUser';
 import PageTitle from '@/components/ui/PageTitle';
 import DataTable from '@/components/ui/DataTable';
 import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { user, insurances, claims } = useAppStore();
+  const { users, isLoading, error } = useGetAllUsers();
   const navigate = useNavigate();
-  
+
   const activeInsurancesCount = insurances.filter(
     insurance => insurance.status === 'active'
   ).length;
-  
+
   const pendingClaimsCount = claims.filter(
     claim => claim.status === 'pending'
   ).length;
-  
-  const usersCount = dummyUsers.length;
-  
-  const recentUsers = dummyUsers.slice(0, 5);
-  
+
+  let usersCount = 0;
+  let recentUsers = '';
+
+  if (users) {
+    console.log(users)
+    usersCount = users.length;
+    recentUsers = users
+      .slice(0, 5)
+      .map((user) => `${user.firstName} ${user.lastName}`)
+      .join(', ');
+  }
+
   const columns = [
     {
       header: 'Name',
@@ -101,7 +103,7 @@ const AdminDashboard = () => {
                 <p className="text-xs text-muted-foreground">
                   {activeInsurancesCount === 0 
                     ? 'No active policies' 
-                    : `Across ${dummyUsers.length} users`}
+                    : `Across ${usersCount} users`}
                 </p>
               </CardContent>
             </Card>
@@ -150,11 +152,17 @@ const AdminDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <DataTable 
-                  data={recentUsers} 
-                  columns={columns}
-                  onRowClick={(user) => navigate(`/admin/users/${user.id}`)}
-                />
+                {isLoading ? (
+                  <div>Loading...</div>
+                ) : error ? (
+                  <div>Error fetching users: {error.message}</div>
+                ) : (
+                  <DataTable 
+                    data={users} 
+                    columns={columns}
+                    onRowClick={(user) => navigate(`/admin/users/${user.id}`)}
+                  />
+                )}
                 <div className="mt-4 flex justify-end">
                   <Button variant="outline" onClick={() => navigate('/admin/users')}>
                     View All Users

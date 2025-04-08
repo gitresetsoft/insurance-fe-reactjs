@@ -1,12 +1,12 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import Sidebar from '@/components/layout/Sidebar';
 import PageTitle from '@/components/ui/PageTitle';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/ui/DataTable';
-import { dummyUsers } from '@/data/dummyData';
+import { useGetAllUsers } from '@/hooks/useUser';
 import { User, useAppStore } from '@/store/store';
 import { fetchAllUsers, maskEmail } from '@/utils/api';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,49 +25,17 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const UsersList = () => {
-  const [regeisUsers, setReqresUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { users, isLoading, error } = useGetAllUsers();
   const [showFullEmail, setShowFullEmail] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const loadReqresUsers = async () => {
-      setIsLoading(true);
-      try {
-        const users = await fetchAllUsers();
-        setReqresUsers(users);
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch filtered users from reqres.in API.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadReqresUsers();
-  }, [toast]);
-
-  // Combine dummy users and reqres users
-  const allUsers = [...dummyUsers, ...regeisUsers];
-  
   const userColumns = [
     {
       header: 'User',
       accessorKey: 'name',
       cell: (user: User) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatar} />
-            <AvatarFallback>
-              {user.firstName.charAt(0)}
-              {user.lastName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
           <div>
             <div className="font-medium">
               {user.firstName} {user.lastName}
@@ -165,34 +133,18 @@ const UsersList = () => {
           </PageTitle>
           
           <div className="mt-6">
-            <DataTable 
-              data={allUsers} 
-              columns={userColumns}
-              searchable
-              searchKeys={['firstName', 'lastName', 'email']}
-              onRowClick={(user) => navigate(`/admin/users/${user.id}`)}
-            />
-          </div>
-          
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold mb-4">
-              ReqRes.in API Integration
-            </h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Displaying users from the ReqRes.in API with first name starting with "G" 
-              or last name starting with "W".
-            </p>
-            
             {isLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
+              <div>Loading...</div>
+            ) : error ? (
+              <div>Error fetching users: {error.message}</div>
             ) : (
-              <div>
-                <div className="text-sm text-muted-foreground">
-                  Found {regeisUsers.length} matching users from external API.
-                </div>
-              </div>
+              <DataTable 
+                data={users} 
+                columns={userColumns as { header: string; accessorKey: keyof User; cell?: (item: User) => ReactNode; }[]}
+                searchable
+                searchKeys={['firstName', 'lastName', 'email']}
+                onRowClick={(user) => navigate(`/admin/users/${user.id}`)}
+              />
             )}
           </div>
         </div>
