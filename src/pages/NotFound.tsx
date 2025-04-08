@@ -4,7 +4,7 @@ import { useAppStore } from "@/store/store";
 
 const NotFound = () => {
   const location = useLocation();
-  const { isAuthenticated } = useAppStore();
+  const { isAuthenticated, user } = useAppStore();
 
   useEffect(() => {
     console.error(
@@ -17,7 +17,13 @@ const NotFound = () => {
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">404</h1>
         <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href={isAuthenticated ? '/dashboard' : '/register'} 
+        <a href={isAuthenticated 
+            ? user.role === 'admin'
+              ? '/admin/dashboard'
+              : user.role === 'user'
+              ? '/dashboard'
+              : '/unauthorized'
+            : '/register'} 
           className="text-blue-500 hover:text-blue-700 underline">
           Return to Home
         </a>

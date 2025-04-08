@@ -14,7 +14,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { fetchUserByEmail } = useUser();
+  const { userLogin } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,12 +22,12 @@ const LoginForm = () => {
     try {
       // TODO: Implement Google OAuth2 authentication
       // For now, we're using email/password + backend validation
-      const result = await fetchUserByEmail.mutateAsync({ email });
+      const result = await userLogin.mutateAsync({ email, password });
       
-      if (result) {
+      if (result.access_token) {
         toast({
           title: "Login successful",
-          description: `Welcome back, ${result.firstName}!`,
+          description: `Welcome back, ${result.user.firstName}!`,
         });
         navigate('/dashboard');
       } else {
@@ -94,9 +94,9 @@ const LoginForm = () => {
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={fetchUserByEmail.isPending}
+            disabled={userLogin.isPending}
           >
-            {fetchUserByEmail.isPending ? 'Signing in...' : 'Sign In'}
+            {userLogin.isPending ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">
