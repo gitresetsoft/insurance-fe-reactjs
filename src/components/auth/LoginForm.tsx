@@ -105,12 +105,11 @@ const LoginForm = () => {
             Create an account
           </Button>
         </div>
-        {/* TODO: Remove demo accounts section once Google OAuth is implemented */}
         <div className="mt-4 p-3 bg-muted rounded-md">
           <div className="text-xs text-muted-foreground">
             <p className="font-medium">Demo Accounts:</p>
-            <p>User: john.doe@example.com / password</p>
-            <p>Admin: admin@example.com / password</p>
+            <p>User: test@example.com / password123</p>
+            <p>Admin: admin@example.com / password123</p>
           </div>
         </div>
       </CardContent>

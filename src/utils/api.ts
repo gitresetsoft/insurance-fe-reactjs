@@ -1,5 +1,4 @@
-
-import { User } from '../store/store';
+import { User } from '@/store/interface';
 
 interface ApiUser {
   id: number;

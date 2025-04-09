@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
-import { LoginData, User } from '../store/store';
-import { useAppStore } from '../store/store';
+import { LoginData, User } from '@/store/interface';
+import { useAppStore } from '@/store/store';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -30,6 +30,18 @@ export const useUser = () => {
       // Store the access token in localStorage
       if (data.access_token) {
         localStorage.setItem('access_token', data.access_token);
+        const userData = JSON.stringify({
+          id: data.user.id,
+          email: data.user.email,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          googleId: data.user.googleId,
+          createdAt: data.user.createdAt,
+          updatedAt: data.user.updatedAt,
+          lastLogin: data.user.lastLogin,
+          avatar: data.user.avatar,
+        });
+        localStorage.setItem('userData', userData);
       }
       login(data.user);
     },

@@ -1,54 +1,18 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-export type UserRole = 'user' | 'admin';
-
-export interface LoginData {
-  access_token: string;
-  user: User;
-}
-
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: UserRole;
-  avatar?: string;
-}
-
-export interface Insurance {
-  id: string;
-  type: 'home' | 'auto' | 'life' | 'health';
-  premium: number;
-  coverage: number;
-  startDate: string;
-  endDate: string;
-  status: 'active' | 'expired' | 'pending';
-}
-
-export interface Claim {
-  id: string;
-  insuranceId: string;
-  date: string;
-  description: string;
-  amount: number;
-  status: 'pending' | 'approved' | 'rejected';
-  documents?: string[];
-}
+import { Claim, Policies, User } from './interface';
 
 interface AppState {
   user: User | null;
   isAuthenticated: boolean;
-  insurances: Insurance[];
+  policies: Policies[];
   claims: Claim[];
   login: (user: User) => void;
   logout: () => void;
-  addInsurance: (insurance: Insurance) => void;
-  updateInsurance: (id: string, insurance: Partial<Insurance>) => void;
+  addInsurance: (insurance: Policies | Policies[]) => void;
+  updateInsurance: (id: string, insurance: Partial<Policies>) => void;
   removeInsurance: (id: string) => void;
-  addClaim: (claim: Claim) => void;
+  addClaim: (claim: Claim | Claim[]) => void;
   updateClaim: (id: string, claim: Partial<Claim>) => void;
   removeClaim: (id: string) => void;
 }
@@ -58,7 +22,7 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
-      insurances: [],
+      policies: [],
       claims: [],
       
       login: (user) => set({ user, isAuthenticated: true }),
@@ -66,25 +30,34 @@ export const useAppStore = create<AppState>()(
       logout: () => set({ user: null, isAuthenticated: false }),
       
       addInsurance: (insurance) => 
-        set((state) => ({ 
-          insurances: [...state.insurances, insurance] 
-        })),
+        set((state) => {
+          const newPolicies = Array.isArray(insurance) ? insurance : [insurance];
+          
+          const updatedPolicies = [
+            ...state.policies,
+            ...newPolicies.filter(
+              (newPolicy) => !state.policies.some(existingPolicy => existingPolicy.id === newPolicy.id)
+            )
+          ];
+      
+          return { policies: updatedPolicies };
+        }),
       
       updateInsurance: (id, insurance) =>
         set((state) => ({
-          insurances: state.insurances.map((ins) =>
-            ins.id === id ? { ...ins, ...insurance } : ins
+          policies: state.policies.map((policy) =>
+            policy.id === id ? { ...policy, ...insurance } : policy
           ),
         })),
       
       removeInsurance: (id) =>
         set((state) => ({
-          insurances: state.insurances.filter((ins) => ins.id !== id),
+          policies: state.policies.filter((policy) => policy.id !== id),
         })),
       
       addClaim: (claim) =>
         set((state) => ({ 
-          claims: [...state.claims, claim] 
+          claims: Array.isArray(claim) ? [...state.claims, ...claim] : [...state.claims, claim] 
         })),
       
       updateClaim: (id, claim) =>

@@ -9,15 +9,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, FileText, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PolicyStatus } from '@/store/interface';
+import { useInsurance } from '@/hooks/useInsurance';
 
 const Insurance = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { insurances, claims, updateInsurance } = useAppStore();
+  const { updateInsurance } = useAppStore();
   const { toast } = useToast();
   
-  const insurance = insurances.find(ins => ins.id === id);
-  const insuranceClaims = claims.filter(claim => claim.insuranceId === id);
+  const { getInsurance } = useInsurance();
+  const { data: insurance, isLoading, isError, error } = getInsurance(id || '');
+  
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error: {error.message}</p>;
+
+  const insuranceClaims = [];
+  //claims.filter(claim => claim.insuranceId === id);
   
   if (!insurance) {
     return (
@@ -43,7 +51,7 @@ const Insurance = () => {
         </div>
       </Layout>
     );
-  }
+  }else{console.log(insurance)}
 
   const handleRenew = () => {
     const today = new Date();
@@ -54,7 +62,7 @@ const Insurance = () => {
     updateInsurance(insurance.id, {
       endDate: newEndDate.toISOString().split('T')[0],
       startDate: today.toISOString().split('T')[0],
-      status: 'active',
+      status: PolicyStatus.ACTIVE,
     });
     
     toast({
@@ -93,8 +101,8 @@ const Insurance = () => {
             Back to Insurance List
           </Button>
           
-          <PageTitle title={`${insuranceTypes[insurance.type]} Insurance Details`}>
-            {insurance.status !== 'active' && (
+          <PageTitle title={`${insurance.insuranceProduct.name} Details`}>
+            {insurance.status !== PolicyStatus.ACTIVE && (
               <Button onClick={handleRenew} className="gap-2">
                 <RefreshCw className="h-4 w-4" />
                 Renew Policy
@@ -118,7 +126,7 @@ const Insurance = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="text-sm font-medium">Coverage Amount:</div>
-                  <div>{formatCurrency(insurance.coverage)}</div>
+                  <div>{formatCurrency(insurance.coverageLimit)}</div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="text-sm font-medium">Start Date:</div>

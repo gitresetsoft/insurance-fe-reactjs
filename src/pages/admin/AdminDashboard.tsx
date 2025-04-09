@@ -16,18 +16,19 @@ import { useGetAllUsers } from '@/hooks/useUser';
 import PageTitle from '@/components/ui/PageTitle';
 import DataTable from '@/components/ui/DataTable';
 import { useNavigate } from 'react-router-dom';
+import { ClaimStatus, PolicyStatus } from '@/store/interface';
 
 const AdminDashboard = () => {
-  const { user, insurances, claims } = useAppStore();
+  const { user, policies, claims } = useAppStore();
   const { users, isLoading, error } = useGetAllUsers();
   const navigate = useNavigate();
 
-  const activeInsurancesCount = insurances.filter(
-    insurance => insurance.status === 'active'
+  const activeInsurancesCount = policies.filter(
+    insurance => insurance.status === PolicyStatus.ACTIVE
   ).length;
 
   const pendingClaimsCount = claims.filter(
-    claim => claim.status === 'pending'
+    claim => claim.status === ClaimStatus.SUBMITTED
   ).length;
 
   let usersCount = 0;
