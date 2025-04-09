@@ -18,8 +18,8 @@ const Insurance = () => {
   const { updateInsurance } = useAppStore();
   const { toast } = useToast();
   
-  const { getInsurance } = useInsurance();
-  const { data: insurance, isLoading, isError, error } = getInsurance(id || '');
+  const { GetInsurance } = useInsurance();
+  const { data: insurance, isLoading, isError, error } = GetInsurance(id || '');
   
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error: {error.message}</p>;

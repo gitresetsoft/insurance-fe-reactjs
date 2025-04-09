@@ -88,7 +88,7 @@ const PurchaseInsurance = () => {
     }
     
     const parsedData = JSON.parse(allData);
-    let user = parsedData.state.user;
+    const user = parsedData.state.user;
 
     if (!user.id) {
       throw new Error('User ID not found in localStorage');
