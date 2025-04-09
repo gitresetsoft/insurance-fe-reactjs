@@ -30,7 +30,7 @@ export const useInsurance = () => {
         }
         
         const parsedData = JSON.parse(allData);
-        let user = parsedData.state.user;
+        const user = parsedData.state.user;
     
         if (!user.id) {
           throw new Error('User ID not found in localStorage');
@@ -76,7 +76,7 @@ export const useInsurance = () => {
     },
   });
 
-  const getInsurance = (id: string) => {
+  const GetInsurance = (id: string) => {
     return useQuery<Policies | null, Error>({
       queryKey: ['insurance', id],
       queryFn: async () => {
@@ -95,7 +95,7 @@ export const useInsurance = () => {
     });
   };
 
-  const getAllInsurance = () => {
+  const GetAllInsurance = () => {
     return useQuery<Policies[] | null, Error>({
       queryKey: ['insurance', 'user'],
       queryFn: async () => {
@@ -121,8 +121,8 @@ export const useInsurance = () => {
 
   return {
     createInsurance,
-    getInsurance,
-    getAllInsurance,
+    GetInsurance,
+    GetAllInsurance,
     insuranceProducts: insuranceProductsData || [],
     productsLoading,
     productsError,
