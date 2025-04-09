@@ -1,9 +1,9 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import Sidebar from '@/components/layout/Sidebar';
-import { useAppStore, Insurance } from '@/store/store';
+import { useAppStore } from '@/store/store';
+import { PolicyStatus, ClaimStatus, PolicyType, Policies } from '@/store/interface';
 import { useToast } from '@/hooks/use-toast';
 import {
   Card,
@@ -20,33 +20,32 @@ import {
   AlertCircle,
   Plus,
 } from 'lucide-react';
-import { dummyInsurances, dummyClaims } from '@/data/dummyData';
+import { dummyClaims } from '@/data/dummyData';
 import PageTitle from '@/components/ui/PageTitle';
+import { useInsurance } from '@/hooks/useInsurance';
+import { formatCurrency } from '@/utils/helper';
 
 const Dashboard = () => {
-  const { user, insurances, claims, addInsurance, addClaim } = useAppStore();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const { user, policies, claims, addClaim, addInsurance } = useAppStore();
+   
   
-  // Add dummy data on first load if empty
   useEffect(() => {
-    if (!insurances.length) {
-      dummyInsurances.forEach(insurance => {
-        addInsurance(insurance);
-      });
-    }
-    
     if (!claims.length) {
       dummyClaims.forEach(claim => {
         addClaim(claim);
       });
     }
-  }, [addInsurance, addClaim, insurances.length, claims.length]);
+  }, [claims.length]);
   
-  const activeInsurances = insurances.filter(insurance => insurance.status === 'active');
-  const pendingClaims = claims.filter(claim => claim.status === 'pending');
+  const uniquePolicies: Policies[] = policies.map(insurance => insurance)
+
+  const activeInsurances = uniquePolicies.filter(insurance => insurance.status === PolicyStatus.ACTIVE);
+  const pendingClaims = claims.filter(claim => claim.status === ClaimStatus.SUBMITTED);
   
-  const upcomingRenewals = insurances.filter(insurance => {
+  const upcomingRenewals = uniquePolicies.filter(insurance => {
     const endDate = new Date(insurance.endDate);
     const today = new Date();
     const diffInDays = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -54,16 +53,18 @@ const Dashboard = () => {
   });
   
   const totalInsuranceValue = activeInsurances.reduce(
-    (total, insurance) => total + insurance.coverage, 
+    (total, insurance) => total + insurance.coverageLimit, 
     0
   );
   
-  const getInsuranceTypeName = (type: Insurance['type']) => {
+  const getInsuranceTypeName = (type: PolicyType) => {
     const names = {
-      home: 'Home',
-      auto: 'Auto',
-      life: 'Life',
-      health: 'Health'
+      [PolicyType.CAR]: 'Car',
+      [PolicyType.HOME]: 'Home',
+      [PolicyType.HEALTH]: 'Health',
+      [PolicyType.LIFE]: 'Life',
+      [PolicyType.TRAVEL]: 'Travel',
+      [PolicyType.BUSINESS]: 'Business'
     };
     return names[type];
   };
@@ -94,7 +95,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="text-2xl font-bold">{activeInsurances.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  Total coverage: ${totalInsuranceValue.toLocaleString()}
+                  Total coverage: {formatCurrency(totalInsuranceValue)}
                 </p>
               </CardContent>
             </Card>
@@ -159,7 +160,7 @@ const Dashboard = () => {
                     <div>
                       <h3 className="font-medium">{getInsuranceTypeName(insurance.type)} Insurance</h3>
                       <p className="text-sm text-muted-foreground">
-                        Coverage: ${insurance.coverage.toLocaleString()}
+                        Coverage: ${insurance.coverageLimit.toLocaleString()}
                       </p>
                     </div>
                     <div className="text-right">
