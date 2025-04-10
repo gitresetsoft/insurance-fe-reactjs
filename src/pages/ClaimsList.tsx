@@ -1,50 +1,47 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import Sidebar from '@/components/layout/Sidebar';
-import { useAppStore, Claim } from '@/store/store';
+import { useAppStore } from '@/store/store';
 import DataTable from '@/components/ui/DataTable';
 import PageTitle from '@/components/ui/PageTitle';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
+import { useClaims, Claim } from '@/hooks/useClaims';
+import { useInsurance } from '@/hooks/useInsurance';
+import { formatCurrency } from '@/utils/helper';
+
+interface Column {
+  header: string;
+  accessorKey: keyof Claim;
+  cell?: (item: Claim) => React.ReactNode;
+}
 
 const ClaimsList = () => {
-  const { claims, insurances } = useAppStore();
   const navigate = useNavigate();
+  const { GetUserClaims } = useClaims();
+  const { GetAllInsurance } = useInsurance();
+  
+  const { data: claims, isLoading: claimsLoading, error: claimsError } = GetUserClaims();
+  const { data: insurances } = GetAllInsurance();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
-
-  const getInsuranceType = (insuranceId: string) => {
-    const insurance = insurances.find(ins => ins.id === insuranceId);
+  const getInsuranceType = (policyId: string) => {
+    const insurance = insurances?.find(ins => ins.id === policyId);
     if (!insurance) return 'Unknown';
-    
-    const insuranceTypes = {
-      home: 'Home',
-      auto: 'Auto',
-      life: 'Life',
-      health: 'Health',
-    };
-    
-    return insuranceTypes[insurance.type];
+    return insurance.insuranceProduct.name;
   };
 
-  const columns = [
+  const columns: Column[] = [
     {
       header: 'Insurance Type',
-      accessorKey: 'insuranceId',
-      cell: (claim: Claim) => getInsuranceType(claim.insuranceId),
+      accessorKey: 'policyId',
+      cell: (claim) => getInsuranceType(claim.policyId),
     },
     {
       header: 'Date',
       accessorKey: 'date',
-      cell: (claim: Claim) => new Date(claim.date).toLocaleDateString(),
+      cell: (claim) => new Date(claim.date).toLocaleDateString(),
     },
     {
       header: 'Description',
@@ -53,12 +50,12 @@ const ClaimsList = () => {
     {
       header: 'Amount',
       accessorKey: 'amount',
-      cell: (claim: Claim) => formatCurrency(claim.amount),
+      cell: (claim) => formatCurrency(claim.amount),
     },
     {
       header: 'Status',
       accessorKey: 'status',
-      cell: (claim: Claim) => {
+      cell: (claim) => {
         const statusStyles = {
           pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
           approved: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
@@ -67,12 +64,42 @@ const ClaimsList = () => {
         
         return (
           <Badge variant="outline" className={statusStyles[claim.status]}>
-            {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+            {claim.status.toString().charAt(0).toUpperCase() + claim.status.toString().slice(1)}
           </Badge>
         );
       },
     },
   ];
+
+  if (claimsLoading) {
+    return (
+      <Layout requireAuth>
+        <div className="flex h-full">
+          <Sidebar className="w-64 hidden md:block" />
+          <div className="flex-1 p-6">
+            <div className="flex items-center justify-center h-full">
+              <p>Loading claims...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (claimsError) {
+    return (
+      <Layout requireAuth>
+        <div className="flex h-full">
+          <Sidebar className="w-64 hidden md:block" />
+          <div className="flex-1 p-6">
+            <div className="flex items-center justify-center h-full">
+              <p className="text-red-500">Error loading claims: {claimsError.message}</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout requireAuth>
@@ -90,14 +117,14 @@ const ClaimsList = () => {
           </PageTitle>
           
           <DataTable 
-            data={claims} 
+            data={claims || []} 
             columns={columns} 
             searchable 
             searchKeys={['description', 'status']}
             onRowClick={(claim) => navigate(`/claims/${claim.id}`)}
           />
           
-          {claims.length === 0 && (
+          {(!claims || claims.length === 0) && (
             <div className="mt-8 text-center">
               <p className="mb-4 text-muted-foreground">
                 You don't have any claims yet.

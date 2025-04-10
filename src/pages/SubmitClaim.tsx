@@ -1,9 +1,8 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import Sidebar from '@/components/layout/Sidebar';
-import { useAppStore, Claim } from '@/store/store';
+import { useAppStore } from '@/store/store';
 import PageTitle from '@/components/ui/PageTitle';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,9 +34,12 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
+import { useClaims } from '@/hooks/useClaims';
+import { useInsurance } from '@/hooks/useInsurance';
+import { PolicyStatus } from '@/store/interface';
 
 const formSchema = z.object({
-  insuranceId: z.string().min(1, { message: "Please select an insurance policy" }),
+  policyId: z.string().min(1, { message: "Please select an insurance policy" }),
   date: z.string().min(1, { message: "Date is required" }),
   description: z.string().min(5, { message: "Description must be at least 5 characters" }),
   amount: z.string().refine((val) => {
@@ -47,59 +49,75 @@ const formSchema = z.object({
 });
 
 const SubmitClaim = () => {
-  const { insuranceId } = useParams<{ insuranceId: string }>();
-  const { insurances, addClaim } = useAppStore();
+  const { policyId } = useParams<{ policyId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { createClaim } = useClaims();
+  const { GetAllInsurance } = useInsurance();
+  const { data: policies, isLoading: policiesLoading } = GetAllInsurance();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      insuranceId: insuranceId || '',
+      policyId: policyId || '',
       date: new Date().toISOString().split('T')[0],
       description: '',
       amount: '',
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const newClaim: Claim = {
-      id: Date.now().toString(),
-      insuranceId: values.insuranceId,
-      date: values.date,
-      description: values.description,
-      amount: parseFloat(values.amount),
-      status: 'pending',
-    };
-    
-    addClaim(newClaim);
-    
-    toast({
-      title: "Claim Submitted",
-      description: "Your claim has been submitted successfully and is pending review.",
-    });
-    
-    navigate('/claims');
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const allData = localStorage.getItem('insurance-app-storage');
+      const parsed = JSON.parse(allData || '{}');
+      const userId = parsed?.state?.user?.id;
+      
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+
+      await createClaim.mutateAsync({
+        policyId: values.policyId,
+        userId,
+        date: values.date,
+        description: values.description,
+        amount: parseFloat(values.amount),
+      });
+      
+      toast({
+        title: "Claim Submitted",
+        description: "Your claim has been submitted successfully and is pending review.",
+      });
+      
+      navigate('/claims');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to submit claim",
+        variant: "destructive",
+      });
+    }
   };
   
-  // Filter out only active insurances
-  const activeInsurances = insurances.filter(
-    insurance => insurance.status === 'active'
-  );
-  
-  const getInsuranceLabel = (id: string) => {
-    const insurance = insurances.find(ins => ins.id === id);
-    if (!insurance) return '';
-    
-    const insuranceTypes = {
-      home: 'Home',
-      auto: 'Auto',
-      life: 'Life',
-      health: 'Health',
-    };
-    
-    return `${insuranceTypes[insurance.type]} Insurance - $${insurance.coverage.toLocaleString()}`;
-  };
+  // Filter out only active policies
+  const activePolicies = policies?.filter(
+    policy => policy.status === PolicyStatus.ACTIVE
+  ) || [];
+
+  if (policiesLoading) {
+    return (
+      <Layout requireAuth>
+        <div className="flex h-full">
+          <Sidebar className="w-64 hidden md:block" />
+          <div className="flex-1 p-6">
+            <div className="flex items-center justify-center h-full">
+              <p>Loading policies...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout requireAuth>
@@ -116,7 +134,7 @@ const SubmitClaim = () => {
             description="File a claim for your insurance policy"
           />
           
-          {activeInsurances.length === 0 ? (
+          {activePolicies.length === 0 ? (
             <Card className="mt-6">
               <CardHeader>
                 <CardTitle>No Active Insurance Policies</CardTitle>
@@ -143,14 +161,14 @@ const SubmitClaim = () => {
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <FormField
                       control={form.control}
-                      name="insuranceId"
+                      name="policyId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Insurance Policy</FormLabel>
                           <Select 
                             onValueChange={field.onChange} 
                             defaultValue={field.value}
-                            disabled={!!insuranceId}
+                            disabled={!!policyId}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -158,9 +176,9 @@ const SubmitClaim = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {activeInsurances.map((insurance) => (
-                                <SelectItem key={insurance.id} value={insurance.id}>
-                                  {getInsuranceLabel(insurance.id)}
+                              {activePolicies.map((policy) => (
+                                <SelectItem key={policy.id} value={policy.id}>
+                                  {policy.insuranceProduct.name} - Policy #{policy.id.slice(-8)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -221,8 +239,12 @@ const SubmitClaim = () => {
                       )}
                     />
                     
-                    <Button type="submit" className="w-full">
-                      Submit Claim
+                    <Button 
+                      type="submit" 
+                      className="w-full"
+                      disabled={createClaim.isPending}
+                    >
+                      {createClaim.isPending ? 'Submitting...' : 'Submit Claim'}
                     </Button>
                   </form>
                 </Form>
